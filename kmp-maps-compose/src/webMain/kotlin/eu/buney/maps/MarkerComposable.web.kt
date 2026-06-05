@@ -3,11 +3,6 @@ package eu.buney.maps
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.geometry.Offset
 
-/**
- * Web limitation: see [rememberComposeBitmapDescriptor]. MarkerComposable internally renders
- * the supplied content to a bitmap; that pipeline isn't yet wired up on web. Use [Marker]
- * with an explicit [BitmapDescriptor] icon instead.
- */
 @Composable
 @GoogleMapComposable
 actual fun MarkerComposable(
@@ -31,7 +26,7 @@ actual fun MarkerComposable(
     onInfoWindowLongClick: (Marker) -> Unit,
     content: @Composable () -> Unit,
 ) {
-    // Fall back to a plain Marker with the default icon. The composable content is ignored.
+    val icon = rememberComposeBitmapDescriptor(keys = keys, content = content)
     Marker(
         state = state,
         contentDescription = contentDescription,
@@ -39,7 +34,7 @@ actual fun MarkerComposable(
         anchor = anchor,
         draggable = draggable,
         flat = flat,
-        icon = null,
+        icon = icon,
         infoWindowAnchor = infoWindowAnchor,
         rotation = rotation,
         snippet = snippet,

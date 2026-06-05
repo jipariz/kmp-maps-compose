@@ -423,16 +423,14 @@ The web target uses the Google Maps JavaScript API via `androidx.compose.ui.view
 **Working overlays**: `GoogleMap`, `Marker`, `Polyline`, `Polygon`, `Circle`, `GroundOverlay` (bounds-based), `TileOverlay`, `MapEffect`, `CameraPositionState` (default-duration animate via `panTo` + `idle` event).
 
 **Limitations**
-- `MarkerComposable` falls back to a default-icon marker — the Compose-to-bitmap rendering pipeline isn't yet wired up on Skiko web. Use `Marker` with `BitmapDescriptorFactory.fromEncodedImage(...)` or `rememberBitmapDescriptor(Res.drawable.X)` for custom icons.
-- `MarkerInfoWindow` / `MarkerInfoWindowContent` fall back to default title/snippet info windows for the same reason.
-- `rememberComposeBitmapDescriptor` throws — use the byte/ImageBitmap variants instead.
+- `MarkerInfoWindow` / `MarkerInfoWindowContent` fall back to default title/snippet info windows — custom-content info windows would need the same bitmap pipeline applied to a `<img>` injected as the InfoWindow content (TBD).
+- `showInfoWindow` / `hideInfoWindow` are not yet wired — each marker would need a lazily-allocated `google.maps.InfoWindow` to support these (TBD).
 - `Polyline` styled spans collapse to the first span's color (matches the iOS "Partial" entry).
-- `MapStyleOptions.fromJson` validates JSON but the style is not yet applied to the live map (PR5).
-- `CameraPositionState.animate` with a custom `durationMs` honors the SDK default duration; only `Int.MAX_VALUE` is fully respected.
-- `CameraPosition.bearing` and `tilt` are always 0 — the classic 2D `google.maps.Map` doesn't expose them.
-- `MapType.NONE` falls back to `roadmap` (no styled-blank base layer yet).
-- `WmsTileOverlay` returns blank tiles on web — the underlying `TileProvider` API is synchronous but the browser only offers async `fetch`. PR5 will add a suspend variant of `TileProvider`.
-- `GroundOverlay` location-based positioning (width/height in meters) is not yet implemented — only bounds-based positioning works.
+- `CameraPosition.bearing` and `tilt` are always 0 on the classic 2D `google.maps.Map`. Use a Cloud-configured `mapId` (vector map) for rotation/tilt support — opt-in is TBD.
+- `GroundOverlay` location-based positioning (width/height in meters) is not yet implemented — only bounds-based positioning works. GroundOverlay bearing also isn't supported (JS API has no live-rotation primitive).
+- `MapColorScheme` is not yet wired — Google Maps JS's `colorScheme` option supports LIGHT/DARK/FOLLOW_SYSTEM (TBD).
+- `AdvancedMarker` (PinConfig) is not implemented (TBD).
+- `latLngBoundsForCameraTarget` is not implemented (the JS API supports it only at map creation, not at runtime).
 - `Object URLs` created by `BitmapDescriptorFactory.fromEncodedImage` are never revoked. Recreate descriptors sparingly.
 
 **Browser support**: any browser with WebAssembly GC and exception handling (Chrome 119+, Firefox 120+, Safari 18.4+). The `js(IR)` target works in older browsers as a fallback.

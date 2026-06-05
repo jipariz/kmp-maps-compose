@@ -11,6 +11,13 @@ internal class TileOverlayCreate(
     val zIndex: Float,
 )
 
+/**
+ * Forces all visible tiles to refetch by removing and re-inserting the ImageMapType into
+ * the map's overlayMapTypes collection. JS Maps has no direct tile-cache-clear primitive,
+ * so this is the standard workaround.
+ */
+internal expect fun TileOverlayHandle.refreshTiles(map: NativeMap, c: TileOverlayCreate)
+
 internal expect fun NativeMap.addTileOverlay(c: TileOverlayCreate): TileOverlayHandle
 internal expect fun TileOverlayHandle.removeFromMap(map: NativeMap)
 internal expect fun TileOverlayHandle.setTileOverlayOpacity(map: NativeMap, opacity: Float)

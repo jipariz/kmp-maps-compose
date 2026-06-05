@@ -20,6 +20,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.viewinterop.HtmlElementView
 import eu.buney.maps.jsinterop.ListenerToken
 import eu.buney.maps.jsinterop.MapsApiLoader
@@ -153,7 +155,25 @@ private fun ReadyGoogleMap(
     LaunchedEffect(uiSettings, nativeMap) {
         nativeMap?.jsApplyUiSettings(uiSettings)
     }
+
+    // Apply content padding to the host div as CSS padding. Treats dp as CSS pixels — they
+    // share the density-independent semantics on web. UI controls and tile loads honor the
+    // padding because Google Maps measures from the div's content box.
+    val layoutDirection = LocalLayoutDirection.current
+    val topDp = contentPadding.calculateTopPadding().value
+    val bottomDp = contentPadding.calculateBottomPadding().value
+    val leftDp = contentPadding.calculateLeftPadding(layoutDirection).value
+    val rightDp = contentPadding.calculateRightPadding(layoutDirection).value
+    LaunchedEffect(hostDiv, topDp, leftDp, bottomDp, rightDp, nativeMap) {
+        val host = hostDiv ?: return@LaunchedEffect
+        host.style.padding = "${topDp}px ${rightDp}px ${bottomDp}px ${leftDp}px"
+        host.style.boxSizing = "border-box"
+        // Inform Google Maps that the container size changed so tiles re-layout.
+        triggerMapResize(nativeMap ?: return@LaunchedEffect)
+    }
 }
+
+internal expect fun triggerMapResize(map: NativeMap)
 
 @Composable
 private fun LoadingPlaceholder(modifier: Modifier) {

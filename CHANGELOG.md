@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Web parity (Tier 1)
+
+- **`MapStyleOptions` live application** — the JSON style is now parsed and applied to the live map on web, both at creation and on prop changes.
+- **`MapType.NONE` blank base layer** — implemented on web via a "hide everything" style.
+- **`Projection` end-to-end** — `cameraPositionState.projection?.toScreenLocation` / `fromScreenLocation` / `visibleBounds` / `contains` all work on web (tile/zoom math + `map.getBounds()`).
+- **`CameraPositionState.animate(durationMs)`** — custom-duration tweening implemented via a Compose-side interpolator (~16ms steps). Default duration (`Int.MAX_VALUE`) still uses the SDK's `panTo` + `idle` event. `NewLatLngBounds` still uses SDK default duration.
+- **`cameraMoveStartedReason.DEVELOPER_ANIMATION`** — set whenever `animate()` / `move()` is called programmatically.
+- **`WmsTileOverlay` works on web** — `WmsTileProvider` bypasses the synchronous `fetchUrlBytes` step on web via a new `urlBackedTileOrNull` fast path that hands the URL straight to JS Maps. No `TileProvider` API change.
+- **`TileOverlayState.clearTileCache` works on web** — removes and re-inserts the underlying `ImageMapType` in `map.overlayMapTypes`.
+- **Content padding works on web** — applied as CSS padding on the host `<div>`; a `google.maps.event.trigger(map, 'resize')` is fired so JS Maps re-tiles.
+- **`rememberComposeBitmapDescriptor` works on web** — uses `ImageComposeScene` + `renderComposeScene` + `Image.encodeToData(PNG)`. `MarkerComposable` now uses this path instead of falling back to default icons.
+
 ## 0.7.0
 
 Based on [android-maps-compose 8.3.0](https://github.com/googlemaps/android-maps-compose).

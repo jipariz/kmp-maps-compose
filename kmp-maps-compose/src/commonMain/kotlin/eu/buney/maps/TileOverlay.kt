@@ -34,6 +34,19 @@ interface TileProvider {
 expect class Tile
 
 /**
+ * Web fast-path: when a [TileProvider] already has a tile's URL (e.g. a WMS endpoint),
+ * skip the bytes-fetch on platforms that can render images directly from URLs.
+ *
+ * - **Web**: returns a URL-backed [Tile] — the JS Maps `ImageMapType.getTileUrl` callback
+ *   serves the URL straight to the browser.
+ * - **Android / iOS**: returns null. The caller must fetch the bytes itself and use
+ *   [TileFactory.fromEncodedImage] — the native tile cache there expects byte payloads.
+ *
+ * Callers that have only bytes should ignore this function and use [TileFactory] directly.
+ */
+expect fun urlBackedTileOrNull(url: String, width: Int, height: Int): Tile?
+
+/**
  * Factory for creating [Tile] instances from pixel data or encoded images.
  */
 expect object TileFactory {

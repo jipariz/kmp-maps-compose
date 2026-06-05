@@ -23,6 +23,8 @@ actual object TileFactory {
         Tile(encodedImageBytesToObjectUrl(data, sniffImageMime(data)))
 }
 
+actual fun urlBackedTileOrNull(url: String, width: Int, height: Int): Tile? = Tile(url)
+
 @Stable
 actual class TileOverlayState actual constructor() {
     internal var clearCacheCallback: (() -> Unit)? = null
@@ -44,20 +46,19 @@ actual fun TileOverlay(
     onClick: (NativeTileOverlay) -> Unit,
 ) {
     val mapApplier = currentComposer.applier as? MapApplier ?: return
+    val create = TileOverlayCreate(
+        getTile = { x, y, zoom -> tileProvider.getTile(x, y, zoom)?.url },
+        opacity = 1f - transparency,
+        zIndex = zIndex,
+    )
 
     ComposeNode<TileOverlayNode, MapApplier>(
         factory = {
-            val handle = mapApplier.map.addTileOverlay(
-                TileOverlayCreate(
-                    getTile = { x, y, zoom -> tileProvider.getTile(x, y, zoom)?.url },
-                    opacity = 1f - transparency,
-                    zIndex = zIndex,
-                )
-            )
             TileOverlayNode(
                 map = mapApplier.map,
-                handle = handle,
+                handle = mapApplier.map.addTileOverlay(create),
                 tileOverlayState = state,
+                createOptions = create,
             )
         },
         update = {

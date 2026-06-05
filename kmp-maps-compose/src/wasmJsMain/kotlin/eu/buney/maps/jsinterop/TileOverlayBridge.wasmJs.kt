@@ -12,7 +12,7 @@ import kotlin.js.JsAny
  * expose a "find this overlay" API.
  */
 internal actual class TileOverlayHandle internal constructor(
-    internal val overlay: JsImageMapType,
+    internal var overlay: JsImageMapType,
     internal var index: Int,
 )
 
@@ -70,4 +70,20 @@ private fun overlayAt(arr: JsAny, index: Int): JsImageMapType =
 
 internal actual fun TileOverlayHandle.setTileOverlayOpacity(map: NativeMap, opacity: Float) {
     setOpacity(overlay, opacity.toDouble())
+}
+
+internal actual fun TileOverlayHandle.refreshTiles(map: NativeMap, c: TileOverlayCreate) {
+    val overlays = overlayMapTypes(map.handle)
+    val len = lengthOf(overlays)
+    var found = -1
+    for (i in 0 until len) {
+        if (overlayAt(overlays, i) === overlay) {
+            found = i
+            break
+        }
+    }
+    if (found >= 0) removeAt(overlays, found)
+    val tileSize = newSize(256, 256)
+    overlay = buildImageMapType(c.getTile, tileSize, c.opacity.toDouble())
+    pushOverlay(overlays, overlay)
 }

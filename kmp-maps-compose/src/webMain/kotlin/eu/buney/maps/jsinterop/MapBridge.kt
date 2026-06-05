@@ -6,6 +6,7 @@ import eu.buney.maps.LatLngBounds
 import eu.buney.maps.MapProperties
 import eu.buney.maps.MapUiSettings
 import eu.buney.maps.NativeMap
+import eu.buney.maps.ScreenPoint
 import org.w3c.dom.HTMLElement
 
 /**
@@ -37,6 +38,19 @@ internal expect fun NativeMap.jsSetZoom(zoom: Double)
 internal expect fun NativeMap.jsPanTo(lat: Double, lng: Double)
 internal expect fun NativeMap.jsFitBounds(bounds: LatLngBounds, padding: Int)
 internal expect fun NativeMap.jsGetCameraPosition(): CameraPosition
+
+/**
+ * Snapshot of the map's current projection state, sufficient to convert between geographic
+ * and screen coordinates and to read the visible bounds. Returns null when the map hasn't
+ * been laid out yet (no projection available).
+ */
+internal expect fun NativeMap.jsCurrentProjection(): ProjectionSnapshot?
+
+internal class ProjectionSnapshot(
+    val toScreen: (LatLng) -> ScreenPoint,
+    val fromScreen: (ScreenPoint) -> LatLng,
+    val visibleBounds: LatLngBounds,
+)
 
 // Properties / UI -------------------------------------------------------------------------------
 

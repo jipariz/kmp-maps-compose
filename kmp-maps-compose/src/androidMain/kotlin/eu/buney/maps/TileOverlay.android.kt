@@ -15,6 +15,8 @@ import com.google.maps.android.compose.rememberTileOverlayState as androidRememb
  */
 actual class Tile(val googleTile: GoogleTile)
 
+actual fun urlBackedTileOrNull(url: String, width: Int, height: Int): Tile? = null
+
 /**
  * Android implementation of [TileFactory].
  */
