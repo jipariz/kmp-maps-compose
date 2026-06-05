@@ -17,6 +17,8 @@ import platform.UIKit.UIScreen
  */
 actual class Tile(val uiImage: UIImage)
 
+actual fun urlBackedTileOrNull(url: String, width: Int, height: Int): Tile? = null
+
 /**
  * iOS implementation of [TileFactory].
  */

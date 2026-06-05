@@ -9,8 +9,10 @@ import eu.buney.maps.MapProperties
 import eu.buney.maps.MapType
 import eu.buney.maps.MapUiSettings
 import eu.buney.maps.NativeMap
+import eu.buney.maps.ScreenPoint
 import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.JsAny
+import kotlin.math.pow
 import org.w3c.dom.HTMLElement
 
 private fun NativeMap.gmap(): GMap = handle
@@ -34,6 +36,11 @@ internal actual fun createNativeMap(
         fullscreenControl = false
         minZoom = properties.minZoomPreference.toDouble()
         maxZoom = properties.maxZoomPreference.toDouble()
+        styles = when {
+            properties.mapType == MapType.NONE -> parseStylesJson(BLANK_STYLE_JSON)
+            properties.mapStyleOptions != null -> parseStylesJson(properties.mapStyleOptions!!.json)
+            else -> null
+        }
     }
     val map = createGMap(host.unsafeCast<JsAny>(), options)
     return NativeMap(map)
@@ -63,6 +70,54 @@ internal actual fun NativeMap.jsFitBounds(bounds: LatLngBounds, padding: Int) {
     )
 }
 
+private fun mapDivClientWidth(map: GMap): Double = js("map.getDiv().clientWidth")
+private fun mapDivClientHeight(map: GMap): Double = js("map.getDiv().clientHeight")
+
+internal actual fun NativeMap.jsCurrentProjection(): ProjectionSnapshot? {
+    val map = gmap()
+    val projection = map.getProjection() ?: return null
+    val bounds = map.getBounds() ?: return null
+    val scale = 2.0.pow(map.getZoom())
+    val width = mapDivClientWidth(map)
+    val height = mapDivClientHeight(map)
+    val centerLatLng = map.getCenter()
+    val centerWorld = projection.fromLatLngToPoint(centerLatLng)
+
+    val ne = bounds.getNorthEast()
+    val sw = bounds.getSouthWest()
+    val visibleBounds = LatLngBounds(
+        southwest = LatLng(sw.lat(), sw.lng()),
+        northeast = LatLng(ne.lat(), ne.lng()),
+    )
+
+    return ProjectionSnapshot(
+        toScreen = { latLng ->
+            val asLatLng = newLatLngLiteralAsJsLatLng(latLng.latitude, latLng.longitude)
+            val world = projection.fromLatLngToPoint(asLatLng)
+            ScreenPoint(
+                x = ((world.x - centerWorld.x) * scale + width / 2.0).toFloat(),
+                y = ((world.y - centerWorld.y) * scale + height / 2.0).toFloat(),
+            )
+        },
+        fromScreen = { sp ->
+            val worldX = (sp.x.toDouble() - width / 2.0) / scale + centerWorld.x
+            val worldY = (sp.y.toDouble() - height / 2.0) / scale + centerWorld.y
+            val point = newJsPoint(worldX, worldY)
+            val ll = projection.fromPointToLatLng(point)
+            LatLng(ll.lat(), ll.lng())
+        },
+        visibleBounds = visibleBounds,
+    )
+}
+
+// google.maps.Projection.fromLatLngToPoint accepts a JsLatLng (instance) — construct one from
+// a LatLngLiteral via google.maps.LatLng.
+private fun newLatLngLiteralAsJsLatLng(lat: Double, lng: Double): JsLatLng =
+    js("new google.maps.LatLng(lat, lng)")
+
+private fun newJsPoint(x: Double, y: Double): JsPoint =
+    js("new google.maps.Point(x, y)")
+
 internal actual fun NativeMap.jsGetCameraPosition(): CameraPosition {
     val g = gmap()
     val center = g.getCenter()
@@ -81,10 +136,23 @@ internal actual fun NativeMap.jsApplyProperties(properties: MapProperties) {
         mapTypeId = properties.mapType.toJsMapTypeId()
         minZoom = properties.minZoomPreference.toDouble()
         maxZoom = properties.maxZoomPreference.toDouble()
+        // Style precedence (PR5): MapType.NONE blanks the base layer via a hide-everything
+        // style; otherwise the consumer-supplied mapStyleOptions JSON applies.
+        styles = when {
+            properties.mapType == MapType.NONE -> parseStylesJson(BLANK_STYLE_JSON)
+            properties.mapStyleOptions != null -> parseStylesJson(properties.mapStyleOptions!!.json)
+            else -> null
+        }
     }
     gmap().setOptions(options)
-    // PR4: traffic / building / indoor layers, mapStyleOptions JSON, my-location.
+    // PR6: traffic / building / indoor layers, my-location.
 }
+
+private fun parseStylesJson(json: String): JsAny =
+    js("JSON.parse(json)")
+
+private const val BLANK_STYLE_JSON =
+    """[{"featureType":"all","elementType":"all","stylers":[{"visibility":"off"}]}]"""
 
 internal actual fun NativeMap.jsApplyUiSettings(uiSettings: MapUiSettings) {
     val options = newMapOptions().apply {
