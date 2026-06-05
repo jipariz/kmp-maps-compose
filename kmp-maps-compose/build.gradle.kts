@@ -1,4 +1,6 @@
 import io.github.frankois944.spmForKmp.swiftPackageConfig
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -36,7 +38,6 @@ kotlin {
     }
 
     listOf(
-        iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
@@ -63,6 +64,25 @@ kotlin {
         }
     }
 
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+    }
+
+    js(IR) {
+        browser()
+    }
+
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    applyDefaultHierarchyTemplate {
+        common {
+            group("web") {
+                withWasmJs()
+                withJs()
+            }
+        }
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -80,6 +100,12 @@ kotlin {
         iosMain.dependencies {
             // Google Maps iOS SDK via SPM
         }
+
+        val webMain by getting {
+            dependencies {
+                implementation(libs.kotlinx.browser)
+            }
+        }
     }
 }
 
@@ -91,7 +117,7 @@ mavenPublishing {
 
     pom {
         name = "Maps Compose Multiplatform"
-        description = "Kotlin Compose Multiplatform library wrapping Google Maps for Android and iOS"
+        description = "Kotlin Compose Multiplatform library wrapping Google Maps for Android, iOS, and Web"
         inceptionYear = "2025"
         url = "https://github.com/yankeppey/kmp-maps-compose"
         licenses {
