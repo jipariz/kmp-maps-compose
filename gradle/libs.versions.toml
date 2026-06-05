@@ -1,7 +1,7 @@
 [versions]
-kmp-maps-compose = "0.6.0"
+kmp-maps-compose = "0.7.0"
 kotlin = "2.3.20"
-compose = "1.10.3"
+compose = "1.11.1"
 agp = "9.1.0"
 maps-compose = "8.3.0"
 # play-services-maps version should match maps-compose transitive dependency:
@@ -14,6 +14,7 @@ kermit = "2.1.0"
 buildkonfig = "0.18.0"
 spmForKmp = "1.7.0"
 vanniktechMavenPublish = "0.36.0"
+kotlinx-browser = "0.5"
 
 [libraries]
 kmp-maps-compose = { module = "eu.buney.maps:kmp-maps-compose", version.ref = "kmp-maps-compose" }
@@ -25,6 +26,7 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 androidx-core = { module = "androidx.core:core", version.ref = "androidx-core" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
+kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlinx-browser" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

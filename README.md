@@ -2,7 +2,9 @@
 
 # Maps Compose Multiplatform
 
-A Kotlin Compose Multiplatform library providing Google Maps integration for Android and iOS with a unified API. Designed as a drop-in multiplatform replacement for [android-maps-compose](https://github.com/googlemaps/android-maps-compose).
+A Kotlin Compose Multiplatform library providing Google Maps integration for Android, iOS, and Web with a unified API. Designed as a drop-in multiplatform replacement for [android-maps-compose](https://github.com/googlemaps/android-maps-compose).
+
+> **Web target is experimental.** Kotlin/Wasm (`wasmJs`) and Kotlin/JS (`js(IR)`) are supported via the Google Maps JavaScript API. Most overlays work; see [Web-Specific Notes](#web-specific-notes) for gaps.
 
 ![Sample app running on iOS and Android](images/demo-android-ios.jpg)
 
@@ -31,6 +33,7 @@ Each platform requires the API key to be configured differently:
 
 - **Android**: Add a `<meta-data>` entry in your `AndroidManifest.xml`
 - **iOS**: Call `GMSServices.provideAPIKey(key)` before using maps
+- **Web**: Set `MapsConfig.apiKey = "..."` before the first `GoogleMap` composes (typically in `main()` before `ComposeViewport(...)`). The library injects Google's official bootstrap script and calls `google.maps.importLibrary("maps")` automatically.
 
 #### Example using BuildKonfig
 
@@ -408,6 +411,31 @@ This table shows feature compatibility between `android-maps-compose` and this l
 | IndoorStateChangeListener | Yes | No | |
 
 **Legend:** Yes = Supported | Partial = See notes | No = Not supported
+
+## Web-Specific Notes
+
+The web target uses the Google Maps JavaScript API via `androidx.compose.ui.viewinterop.HtmlElementView` (Compose Multiplatform 1.11+).
+
+**Setup**
+- Set `MapsConfig.apiKey` before the first `GoogleMap` composes. Optionally `MapsConfig.libraries`, `MapsConfig.language`, `MapsConfig.region`.
+- The `index.html` hosting the Compose canvas needs no special markup — `ComposeViewport(document.body!!)` is sufficient.
+
+**Working overlays**: `GoogleMap`, `Marker`, `Polyline`, `Polygon`, `Circle`, `GroundOverlay` (bounds-based), `TileOverlay`, `MapEffect`, `CameraPositionState` (default-duration animate via `panTo` + `idle` event).
+
+**Limitations**
+- `MarkerComposable` falls back to a default-icon marker — the Compose-to-bitmap rendering pipeline isn't yet wired up on Skiko web. Use `Marker` with `BitmapDescriptorFactory.fromEncodedImage(...)` or `rememberBitmapDescriptor(Res.drawable.X)` for custom icons.
+- `MarkerInfoWindow` / `MarkerInfoWindowContent` fall back to default title/snippet info windows for the same reason.
+- `rememberComposeBitmapDescriptor` throws — use the byte/ImageBitmap variants instead.
+- `Polyline` styled spans collapse to the first span's color (matches the iOS "Partial" entry).
+- `MapStyleOptions.fromJson` validates JSON but the style is not yet applied to the live map (PR5).
+- `CameraPositionState.animate` with a custom `durationMs` honors the SDK default duration; only `Int.MAX_VALUE` is fully respected.
+- `CameraPosition.bearing` and `tilt` are always 0 — the classic 2D `google.maps.Map` doesn't expose them.
+- `MapType.NONE` falls back to `roadmap` (no styled-blank base layer yet).
+- `WmsTileOverlay` returns blank tiles on web — the underlying `TileProvider` API is synchronous but the browser only offers async `fetch`. PR5 will add a suspend variant of `TileProvider`.
+- `GroundOverlay` location-based positioning (width/height in meters) is not yet implemented — only bounds-based positioning works.
+- `Object URLs` created by `BitmapDescriptorFactory.fromEncodedImage` are never revoked. Recreate descriptors sparingly.
+
+**Browser support**: any browser with WebAssembly GC and exception handling (Chrome 119+, Firefox 120+, Safari 18.4+). The `js(IR)` target works in older browsers as a fallback.
 
 ## iOS-Specific Notes
 

@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.7.0
+
+Based on [android-maps-compose 8.3.0](https://github.com/googlemaps/android-maps-compose).
+
+**SDK Versions:**
+- Google Maps iOS SDK: 10.8.0
+- Google Play Services Maps: 20.0.0
+- Google Maps JavaScript API: weekly release channel
+
+### Features
+
+- **Web target** — Kotlin/Wasm (`wasmJs`) and Kotlin/JS (`js(IR)`) targets backed by the Google Maps JavaScript API. Loads via Google's official bootstrap snippet; uses `androidx.compose.ui.viewinterop.HtmlElementView` (Compose Multiplatform 1.11) as the DOM-on-canvas host. Supports `GoogleMap`, `Marker`, `Polyline`, `Polygon`, `Circle`, `GroundOverlay` (bounds-based), `TileOverlay`, `MapEffect`, and `CameraPositionState`. See README "Web-Specific Notes" for gaps (`MarkerComposable` / custom info-window content / styled polyline spans / `mapStyleOptions` application / `WmsTileOverlay` async fetch / location-based `GroundOverlay`).
+- **`:sample:webApp` module** — runs the full demo set in a browser via `ComposeViewport`. Configure via `MapsConfig.apiKey = "..."` before `ComposeViewport(...)`.
+
+### Breaking Changes
+
+- **Dropped `iosX64` target** — Compose Multiplatform 1.11 no longer supports Apple x86_64. Use `iosSimulatorArm64` on Apple Silicon Macs.
+
+### Other Changes
+
+- Updated Compose Multiplatform 1.10.3 → 1.11.1 (requires Kotlin ≥ 2.3.20 — already satisfied).
+
 ## 0.6.0
 
 Based on [android-maps-compose 8.3.0](https://github.com/googlemaps/android-maps-compose).

@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -29,13 +31,31 @@ kotlin {
     }
 
     listOf(
-        iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
             baseName = "MapsComposeUtilsMp"
             isStatic = true
+        }
+    }
+
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+    }
+
+    js(IR) {
+        browser()
+    }
+
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    applyDefaultHierarchyTemplate {
+        common {
+            group("web") {
+                withWasmJs()
+                withJs()
+            }
         }
     }
 
@@ -46,6 +66,12 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.components.uiToolingPreview)
             implementation(compose.preview)
+        }
+
+        val webMain by getting {
+            dependencies {
+                implementation(libs.kotlinx.browser)
+            }
         }
     }
 }
