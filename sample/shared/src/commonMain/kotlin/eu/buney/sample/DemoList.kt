@@ -42,6 +42,10 @@ enum class DemoScreen(val title: String, val description: String) {
         title = "Styled Map",
         description = "Custom map styling via JSON",
     ),
+    Monochrome(
+        title = "Monochrome Map",
+        description = "Black & white styling + MapColorScheme dark theme",
+    ),
     TileOverlay(
         title = "Tile Overlay",
         description = "Custom tile overlay with cache management",
@@ -69,6 +73,7 @@ val allDemoGroups = listOf(
         demos = listOf(
             DemoScreen.BasicMap,
             DemoScreen.StyledMap,
+            DemoScreen.Monochrome,
         ),
     ),
     DemoGroup(
