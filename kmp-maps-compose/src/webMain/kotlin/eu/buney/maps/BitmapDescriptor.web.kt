@@ -3,15 +3,34 @@ package eu.buney.maps
 /**
  * Holds a URL pointing to the image used as a map icon (Object URL or data URL).
  *
- * `ownsUrl=true` means the URL was created via `URL.createObjectURL` and should ideally be
- * revoked when the last referencing node detaches. PR4 ships without refcounted revocation —
- * Object URLs survive until page reload. A follow-up can wire `FinalizationRegistry` or a
- * Node-level refcount through `MarkerNode.onRemoved`.
+ * Object URLs (`ownsUrl=true`) are refcounted: each [MarkerNode] / [GroundOverlayNode]
+ * that references the descriptor calls [acquire] on attach, and [release] on remove. When
+ * the refcount drops to zero the underlying `URL.revokeObjectURL` fires. Data URLs
+ * (`ownsUrl=false`) don't need revocation — the refcount is harmless no-op for them.
+ *
+ * Recreating the same descriptor in composition rebumps the refcount; the underlying
+ * Object URL stays alive as long as at least one map node holds it.
  */
 actual class BitmapDescriptor internal constructor(
     val url: String,
     internal val ownsUrl: Boolean,
-)
+) {
+    private var refCount: Int = 0
+
+    internal fun acquire() {
+        refCount++
+    }
+
+    internal fun release() {
+        refCount--
+        if (refCount <= 0 && ownsUrl) {
+            revokeObjectUrl(url)
+            refCount = 0
+        }
+    }
+}
+
+internal expect fun revokeObjectUrl(url: String)
 
 actual object BitmapDescriptorFactory {
     actual fun fromBytes(bytes: ByteArray, width: Int, height: Int): BitmapDescriptor {

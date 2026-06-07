@@ -15,6 +15,8 @@ package eu.buney.maps
  * @property mapStyleOptions Custom map styling options, or null for the default style.
  *   Use [MapStyleOptions.fromJson] with a JSON string from the
  *   [Google Maps Styling Wizard](https://mapstyle.withgoogle.com/).
+ * @property colorScheme Light / dark / system-follow theme for the base map UI.
+ *   See [MapColorScheme] for platform support notes.
  * @property minZoomPreference The preferred minimum zoom level.
  * @property maxZoomPreference The preferred maximum zoom level.
  */
@@ -25,6 +27,7 @@ class MapProperties(
     val isTrafficEnabled: Boolean = false,
     val mapType: MapType = MapType.NORMAL,
     val mapStyleOptions: MapStyleOptions? = null,
+    val colorScheme: MapColorScheme = MapColorScheme.FOLLOW_SYSTEM,
     val minZoomPreference: Float = 3.0f,
     val maxZoomPreference: Float = 21.0f,
 ) {
@@ -32,6 +35,7 @@ class MapProperties(
         "isBuildingEnabled=$isBuildingEnabled, isIndoorEnabled=$isIndoorEnabled, " +
         "isMyLocationEnabled=$isMyLocationEnabled, isTrafficEnabled=$isTrafficEnabled, " +
         "mapType=$mapType, mapStyleOptions=${mapStyleOptions != null}, " +
+        "colorScheme=$colorScheme, " +
         "minZoomPreference=$minZoomPreference, " +
         "maxZoomPreference=$maxZoomPreference)"
 
@@ -42,6 +46,7 @@ class MapProperties(
         isTrafficEnabled == other.isTrafficEnabled &&
         mapType == other.mapType &&
         mapStyleOptions == other.mapStyleOptions &&
+        colorScheme == other.colorScheme &&
         minZoomPreference == other.minZoomPreference &&
         maxZoomPreference == other.maxZoomPreference
 
@@ -52,6 +57,7 @@ class MapProperties(
         result = 31 * result + isTrafficEnabled.hashCode()
         result = 31 * result + mapType.hashCode()
         result = 31 * result + (mapStyleOptions?.hashCode() ?: 0)
+        result = 31 * result + colorScheme.hashCode()
         result = 31 * result + minZoomPreference.hashCode()
         result = 31 * result + maxZoomPreference.hashCode()
         return result
@@ -64,6 +70,7 @@ class MapProperties(
         isTrafficEnabled: Boolean = this.isTrafficEnabled,
         mapType: MapType = this.mapType,
         mapStyleOptions: MapStyleOptions? = this.mapStyleOptions,
+        colorScheme: MapColorScheme = this.colorScheme,
         minZoomPreference: Float = this.minZoomPreference,
         maxZoomPreference: Float = this.maxZoomPreference,
     ): MapProperties = MapProperties(
@@ -73,6 +80,7 @@ class MapProperties(
         isTrafficEnabled = isTrafficEnabled,
         mapType = mapType,
         mapStyleOptions = mapStyleOptions,
+        colorScheme = colorScheme,
         minZoomPreference = minZoomPreference,
         maxZoomPreference = maxZoomPreference,
     )

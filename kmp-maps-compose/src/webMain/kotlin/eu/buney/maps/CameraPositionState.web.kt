@@ -14,6 +14,7 @@ import eu.buney.maps.jsinterop.jsFitBounds
 import eu.buney.maps.jsinterop.jsGetCameraPosition
 import eu.buney.maps.jsinterop.jsPanTo
 import eu.buney.maps.jsinterop.jsSetCenter
+import eu.buney.maps.jsinterop.jsSetHeadingAndTilt
 import eu.buney.maps.jsinterop.jsSetZoom
 import kotlinx.coroutines.CompletableDeferred
 
@@ -67,8 +68,9 @@ actual class CameraPositionState actual constructor(
             suppressMapToStateSync = true
             map.jsSetCenter(value.target.latitude, value.target.longitude)
             map.jsSetZoom(value.zoom.toDouble())
-            // Bearing/tilt are not exposed by the classic 2D JS Map. PR5+ vector-map work
-            // can wire these up if needed.
+            // Heading + tilt only take effect on vector maps (MapsConfig.mapId set); classic
+            // raster maps silently no-op these setters.
+            map.jsSetHeadingAndTilt(value.bearing, value.tilt)
         }
 
     actual val projection: Projection?
@@ -190,6 +192,7 @@ actual class CameraPositionState actual constructor(
         suppressMapToStateSync = true
         map.jsSetCenter(_position.target.latitude, _position.target.longitude)
         map.jsSetZoom(_position.zoom.toDouble())
+        map.jsSetHeadingAndTilt(_position.bearing, _position.tilt)
 
         // Reflect map-driven changes back into state.
         mapListenerTokens += map.jsAddDragStartListener {

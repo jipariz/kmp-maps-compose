@@ -18,6 +18,10 @@ external interface GMap {
     fun getZoom(): Double
     fun getBounds(): JsLatLngBounds?
     fun getProjection(): JsProjection?
+    fun getHeading(): Double
+    fun setHeading(heading: Double)
+    fun getTilt(): Double
+    fun setTilt(tilt: Double)
     fun addListener(eventName: String, handler: (dynamic) -> Unit): MapsEventListener
 }
 
@@ -34,6 +38,10 @@ external interface MapOptions {
     var styles: dynamic
     var minZoom: Double?
     var maxZoom: Double?
+    var colorScheme: String?
+    var mapId: String?
+    var heading: Double?
+    var tilt: Double?
 }
 
 external interface LatLngLiteral {

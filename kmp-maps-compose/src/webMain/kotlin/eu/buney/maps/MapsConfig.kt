@@ -46,4 +46,19 @@ object MapsConfig {
      * Optional region code (ccTLD), e.g. `"US"`, `"DE"`. Biases geocoding and tile rendering.
      */
     var region: String? = null
+
+    /**
+     * Optional Cloud-configured Map ID. Configure styles, color scheme, and vector-map
+     * features at https://console.cloud.google.com/google/maps-apis/studio/maps.
+     *
+     * Setting a mapId switches the map from the classic raster renderer to the vector
+     * renderer, which is required for:
+     * - [MapColorScheme.LIGHT] / [MapColorScheme.DARK] (the JS API ignores `colorScheme`
+     *   on classic raster maps);
+     * - non-zero `bearing` (heading) and `tilt` on [CameraPosition].
+     *
+     * Must be set before the first [GoogleMap] composes — mapId can only be specified at
+     * `new google.maps.Map(...)` construction time.
+     */
+    var mapId: String? = null
 }

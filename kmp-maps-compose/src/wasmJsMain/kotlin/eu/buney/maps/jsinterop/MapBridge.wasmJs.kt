@@ -5,9 +5,11 @@ package eu.buney.maps.jsinterop
 import eu.buney.maps.CameraPosition
 import eu.buney.maps.LatLng
 import eu.buney.maps.LatLngBounds
+import eu.buney.maps.MapColorScheme
 import eu.buney.maps.MapProperties
 import eu.buney.maps.MapType
 import eu.buney.maps.MapUiSettings
+import eu.buney.maps.MapsConfig
 import eu.buney.maps.NativeMap
 import eu.buney.maps.ScreenPoint
 import kotlin.js.ExperimentalWasmJsInterop
@@ -41,9 +43,19 @@ internal actual fun createNativeMap(
             properties.mapStyleOptions != null -> parseStylesJson(properties.mapStyleOptions!!.json)
             else -> null
         }
+        colorScheme = properties.colorScheme.toJsValue()
+        // Cloud-styled vector map opt-in. Required for colorScheme LIGHT/DARK to take
+        // effect, and unlocks bearing/tilt (camera heading + tilt) at runtime.
+        mapId = MapsConfig.mapId
     }
     val map = createGMap(host.unsafeCast<JsAny>(), options)
     return NativeMap(map)
+}
+
+private fun MapColorScheme.toJsValue(): String = when (this) {
+    MapColorScheme.FOLLOW_SYSTEM -> "FOLLOW_SYSTEM"
+    MapColorScheme.LIGHT -> "LIGHT"
+    MapColorScheme.DARK -> "DARK"
 }
 
 internal actual fun NativeMap.jsSetCenter(lat: Double, lng: Double) {
@@ -56,6 +68,12 @@ internal actual fun NativeMap.jsSetZoom(zoom: Double) {
 
 internal actual fun NativeMap.jsPanTo(lat: Double, lng: Double) {
     gmap().panTo(newLatLngLiteral(lat, lng))
+}
+
+internal actual fun NativeMap.jsSetHeadingAndTilt(bearing: Float, tilt: Float) {
+    val g = gmap()
+    g.setHeading(bearing.toDouble())
+    g.setTilt(tilt.toDouble())
 }
 
 internal actual fun NativeMap.jsFitBounds(bounds: LatLngBounds, padding: Int) {
@@ -121,13 +139,13 @@ private fun newJsPoint(x: Double, y: Double): JsPoint =
 internal actual fun NativeMap.jsGetCameraPosition(): CameraPosition {
     val g = gmap()
     val center = g.getCenter()
+    // Vector maps (configured via MapsConfig.mapId) honor heading + tilt; classic raster
+    // maps return 0 for both, which we surface as-is.
     return CameraPosition(
         target = LatLng(center.lat(), center.lng()),
         zoom = g.getZoom().toFloat(),
-        // google.maps.Map JS API exposes neither bearing nor tilt for the classic 2D map.
-        // VectorMap supports both; we'll wire those up in a follow-up if we adopt vector maps.
-        bearing = 0f,
-        tilt = 0f,
+        bearing = g.getHeading().toFloat(),
+        tilt = g.getTilt().toFloat(),
     )
 }
 
@@ -136,16 +154,20 @@ internal actual fun NativeMap.jsApplyProperties(properties: MapProperties) {
         mapTypeId = properties.mapType.toJsMapTypeId()
         minZoom = properties.minZoomPreference.toDouble()
         maxZoom = properties.maxZoomPreference.toDouble()
-        // Style precedence (PR5): MapType.NONE blanks the base layer via a hide-everything
-        // style; otherwise the consumer-supplied mapStyleOptions JSON applies.
+        // Style precedence: MapType.NONE blanks the base layer; otherwise the
+        // consumer-supplied mapStyleOptions JSON applies.
         styles = when {
             properties.mapType == MapType.NONE -> parseStylesJson(BLANK_STYLE_JSON)
             properties.mapStyleOptions != null -> parseStylesJson(properties.mapStyleOptions!!.json)
             else -> null
         }
+        colorScheme = properties.colorScheme.toJsValue()
+        // mapId is intentionally omitted here — Google Maps JS does not honor mapId
+        // changes via setOptions after construction. Set MapsConfig.mapId before
+        // composing GoogleMap if you need a vector map.
     }
     gmap().setOptions(options)
-    // PR6: traffic / building / indoor layers, my-location.
+    // PR7+: traffic / building / indoor layers, my-location.
 }
 
 private fun parseStylesJson(json: String): JsAny =
