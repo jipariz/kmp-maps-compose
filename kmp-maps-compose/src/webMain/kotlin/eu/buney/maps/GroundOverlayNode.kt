@@ -7,6 +7,7 @@ import eu.buney.maps.jsinterop.removeFromMap
 
 internal class GroundOverlayNode(
     val groundOverlay: GroundOverlayRef,
+    val image: BitmapDescriptor,
     var bounds: LatLngBounds,
     var bearing: Float,
     var transparency: Float,
@@ -16,6 +17,7 @@ internal class GroundOverlayNode(
     private var listener: ListenerToken? = null
 
     override fun onAttached() {
+        image.acquire()
         listener = groundOverlay.addClickListener {
             onGroundOverlayClick(GroundOverlay(bounds, bearing, transparency))
         }
@@ -28,5 +30,6 @@ internal class GroundOverlayNode(
         listener?.remove()
         listener = null
         groundOverlay.removeFromMap()
+        image.release()
     }
 }

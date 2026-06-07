@@ -3,9 +3,11 @@ package eu.buney.maps.jsinterop
 import eu.buney.maps.CameraPosition
 import eu.buney.maps.LatLng
 import eu.buney.maps.LatLngBounds
+import eu.buney.maps.MapColorScheme
 import eu.buney.maps.MapProperties
 import eu.buney.maps.MapType
 import eu.buney.maps.MapUiSettings
+import eu.buney.maps.MapsConfig
 import eu.buney.maps.NativeMap
 import eu.buney.maps.ScreenPoint
 import kotlin.math.pow
@@ -37,9 +39,17 @@ internal actual fun createNativeMap(
             properties.mapStyleOptions != null -> parseStylesJson(properties.mapStyleOptions!!.json)
             else -> null
         }
+        colorScheme = properties.colorScheme.toJsValue()
+        mapId = MapsConfig.mapId
     }
     val map = createGMap(host.asDynamic(), options)
     return NativeMap(map)
+}
+
+private fun MapColorScheme.toJsValue(): String = when (this) {
+    MapColorScheme.FOLLOW_SYSTEM -> "FOLLOW_SYSTEM"
+    MapColorScheme.LIGHT -> "LIGHT"
+    MapColorScheme.DARK -> "DARK"
 }
 
 internal actual fun NativeMap.jsSetCenter(lat: Double, lng: Double) {
@@ -52,6 +62,12 @@ internal actual fun NativeMap.jsSetZoom(zoom: Double) {
 
 internal actual fun NativeMap.jsPanTo(lat: Double, lng: Double) {
     gmap().panTo(newLatLngLiteral(lat, lng))
+}
+
+internal actual fun NativeMap.jsSetHeadingAndTilt(bearing: Float, tilt: Float) {
+    val g = gmap()
+    g.setHeading(bearing.toDouble())
+    g.setTilt(tilt.toDouble())
 }
 
 internal actual fun NativeMap.jsFitBounds(bounds: LatLngBounds, padding: Int) {
@@ -115,8 +131,8 @@ internal actual fun NativeMap.jsGetCameraPosition(): CameraPosition {
     return CameraPosition(
         target = LatLng(center.lat(), center.lng()),
         zoom = g.getZoom().toFloat(),
-        bearing = 0f,
-        tilt = 0f,
+        bearing = g.getHeading().toFloat(),
+        tilt = g.getTilt().toFloat(),
     )
 }
 
@@ -130,6 +146,7 @@ internal actual fun NativeMap.jsApplyProperties(properties: MapProperties) {
             properties.mapStyleOptions != null -> parseStylesJson(properties.mapStyleOptions!!.json)
             else -> null
         }
+        colorScheme = properties.colorScheme.toJsValue()
     }
     gmap().setOptions(options)
 }

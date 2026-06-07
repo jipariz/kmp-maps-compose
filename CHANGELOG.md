@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### Features
+
+- **`MapColorScheme`** — new commonMain enum (`FOLLOW_SYSTEM` / `LIGHT` / `DARK`) added to `MapProperties.colorScheme`.
+  - **Android**: native via `android-maps-compose`'s `ComposeMapColorScheme`.
+  - **Web** (wasmJs / jsIr): native via `google.maps.Map`'s `colorScheme` option. Requires a Cloud-configured `MapsConfig.mapId` for guaranteed-correct LIGHT/DARK rendering — the classic raster renderer ignores the option.
+  - **iOS**: no native API; for the same look, apply a dark `MapStyleOptions` JSON.
+- **`MapsConfig.mapId`** (web) — opt-in for Cloud-styled vector maps; unlocks `MapColorScheme`, `CameraPosition.bearing`/`tilt`, and any Cloud-configured styling.
+
+### Web parity (Tier 2)
+
+- **InfoWindow features** — `MarkerInfoWindow` and `MarkerInfoWindowContent` now render their Compose content via `rememberComposeBitmapDescriptor` and inject the resulting image as the JS InfoWindow's content. `MarkerState.showInfoWindow()` / `hideInfoWindow()` work. Default Marker click opens an info window when title/snippet are present. `onInfoWindowClose` wired to the JS `closeclick` event.
+- **Styled `Polyline` spans** — split into N JS polylines, one per span, instead of falling back to the first span's color. Gradient spans use the midpoint color; stamp styles are still ignored.
+- **`CameraPosition.bearing` / `tilt`** — read from `map.getHeading()` / `getTilt()` and pushed via `setHeading`/`setTilt`. Effective only on vector maps (set `MapsConfig.mapId`); classic raster maps return 0.
+- **Object URL refcount** — `BitmapDescriptor` (Object-URL-backed) now refcounts attach/detach across `MarkerNode` and `GroundOverlayNode`. The browser's `URL.revokeObjectURL` fires when the last reference drops, preventing the memory leak documented in 0.7.0.
+
 ### Web parity (Tier 1)
 
 - **`MapStyleOptions` live application** — the JSON style is now parsed and applied to the live map on web, both at creation and on prop changes.

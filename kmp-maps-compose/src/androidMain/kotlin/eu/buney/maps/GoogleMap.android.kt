@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.google.maps.android.compose.ComposeMapColorScheme
 import com.google.maps.android.compose.GoogleMap as AndroidGoogleMap
 import com.google.maps.android.compose.MapProperties as GoogleMapProperties
 import com.google.maps.android.compose.MapType as GoogleMapType
@@ -50,6 +51,11 @@ actual fun GoogleMap(
         modifier = modifier,
         cameraPositionState = google,
         contentPadding = contentPadding,
+        mapColorScheme = when (properties.colorScheme) {
+            MapColorScheme.FOLLOW_SYSTEM -> ComposeMapColorScheme.FOLLOW_SYSTEM
+            MapColorScheme.LIGHT -> ComposeMapColorScheme.LIGHT
+            MapColorScheme.DARK -> ComposeMapColorScheme.DARK
+        },
         properties = GoogleMapProperties(
             isBuildingEnabled = properties.isBuildingEnabled,
             isIndoorEnabled = properties.isIndoorEnabled,

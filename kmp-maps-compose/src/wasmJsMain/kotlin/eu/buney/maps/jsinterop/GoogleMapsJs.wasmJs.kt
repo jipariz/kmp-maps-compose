@@ -23,6 +23,11 @@ external interface GMap : JsAny {
     fun getZoom(): Double
     fun getBounds(): JsLatLngBounds?
     fun getProjection(): JsProjection?
+    // Vector-map only — returns 0 on classic raster maps. setters silently no-op there too.
+    fun getHeading(): Double
+    fun setHeading(heading: Double)
+    fun getTilt(): Double
+    fun setTilt(tilt: Double)
     fun addListener(eventName: String, handler: (JsAny?) -> Unit): MapsEventListener
 }
 
@@ -39,6 +44,10 @@ external interface MapOptions : JsAny {
     var styles: JsAny?
     var minZoom: Double?
     var maxZoom: Double?
+    var colorScheme: String?
+    var mapId: String?
+    var heading: Double?
+    var tilt: Double?
 }
 
 external interface LatLngLiteral : JsAny {

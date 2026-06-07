@@ -43,6 +43,7 @@ actual fun GroundOverlay(
                         clickable = clickable,
                     )
                 ),
+                image = image,
                 bounds = bounds,
                 bearing = bearing,
                 transparency = transparency,

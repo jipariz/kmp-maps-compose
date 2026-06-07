@@ -19,6 +19,10 @@ internal actual fun encodedImageBytesToObjectUrl(bytes: ByteArray, mime: String)
     return createObjectUrlForBlob(makeBlob(arr.unsafeCast<Uint8Array>(), mime))
 }
 
+internal actual fun revokeObjectUrl(url: String) {
+    js("URL.revokeObjectURL(url)")
+}
+
 internal actual fun argbBytesToDataUrl(bytes: ByteArray, width: Int, height: Int): String {
     val canvas = document.createElement("canvas") as HTMLCanvasElement
     canvas.width = width

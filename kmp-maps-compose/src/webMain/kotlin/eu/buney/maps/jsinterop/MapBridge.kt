@@ -37,6 +37,12 @@ internal expect fun NativeMap.jsSetCenter(lat: Double, lng: Double)
 internal expect fun NativeMap.jsSetZoom(zoom: Double)
 internal expect fun NativeMap.jsPanTo(lat: Double, lng: Double)
 internal expect fun NativeMap.jsFitBounds(bounds: LatLngBounds, padding: Int)
+
+/**
+ * Push heading + tilt to the map. Only effective on vector maps (configured via
+ * [eu.buney.maps.MapsConfig.mapId]) — silently no-ops on the classic 2D raster map.
+ */
+internal expect fun NativeMap.jsSetHeadingAndTilt(bearing: Float, tilt: Float)
 internal expect fun NativeMap.jsGetCameraPosition(): CameraPosition
 
 /**

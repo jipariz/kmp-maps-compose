@@ -422,16 +422,16 @@ The web target uses the Google Maps JavaScript API via `androidx.compose.ui.view
 
 **Working overlays**: `GoogleMap`, `Marker`, `Polyline`, `Polygon`, `Circle`, `GroundOverlay` (bounds-based), `TileOverlay`, `MapEffect`, `CameraPositionState` (default-duration animate via `panTo` + `idle` event).
 
+**Vector-map opt-in for `MapColorScheme` LIGHT/DARK and bearing/tilt**
+
+Google Maps JS exposes `colorScheme` and runtime heading/tilt only on **vector maps**, not the classic raster renderer. To opt in, configure a Map ID in the Google Cloud Console (Map Management → Maps) and set `MapsConfig.mapId = "..."` before composing `GoogleMap`. Without a `mapId`, `MapColorScheme.DARK` is silently ignored and `CameraPosition.bearing`/`tilt` always read as 0.
+
 **Limitations**
-- `MarkerInfoWindow` / `MarkerInfoWindowContent` fall back to default title/snippet info windows — custom-content info windows would need the same bitmap pipeline applied to a `<img>` injected as the InfoWindow content (TBD).
-- `showInfoWindow` / `hideInfoWindow` are not yet wired — each marker would need a lazily-allocated `google.maps.InfoWindow` to support these (TBD).
-- `Polyline` styled spans collapse to the first span's color (matches the iOS "Partial" entry).
-- `CameraPosition.bearing` and `tilt` are always 0 on the classic 2D `google.maps.Map`. Use a Cloud-configured `mapId` (vector map) for rotation/tilt support — opt-in is TBD.
-- `GroundOverlay` location-based positioning (width/height in meters) is not yet implemented — only bounds-based positioning works. GroundOverlay bearing also isn't supported (JS API has no live-rotation primitive).
-- `MapColorScheme` is not yet wired — Google Maps JS's `colorScheme` option supports LIGHT/DARK/FOLLOW_SYSTEM (TBD).
-- `AdvancedMarker` (PinConfig) is not implemented (TBD).
+- `Polyline` `StampStyle` (textured polylines) and `PatternItem` dashed strokes are not supported — the JS API has no native primitive. Solid colors and per-span coloring work.
+- `GroundOverlay` location-based positioning (width/height in meters) is not yet implemented — only bounds-based positioning works. GroundOverlay bearing isn't supported either (JS API has no live-rotation primitive).
+- `AdvancedMarker` (PinConfig) is not implemented.
 - `latLngBoundsForCameraTarget` is not implemented (the JS API supports it only at map creation, not at runtime).
-- `Object URLs` created by `BitmapDescriptorFactory.fromEncodedImage` are never revoked. Recreate descriptors sparingly.
+- `onInfoWindowClick` / `onInfoWindowLongClick` are not yet wired — the JS InfoWindow doesn't surface click events on its content frame natively (would need a custom DOM listener attached to the rendered content element).
 
 **Browser support**: any browser with WebAssembly GC and exception handling (Chrome 119+, Firefox 120+, Safari 18.4+). The `js(IR)` target works in older browsers as a fallback.
 
